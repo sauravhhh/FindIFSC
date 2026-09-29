@@ -312,6 +312,7 @@ const sharedMsg = document.getElementById('sharedMsg');
 const loadingDiv = document.getElementById('loading');
 let latestTextToShare = "";
 let branchData = []; // filtered branch objects for current center+bank
+let statesList = []; // cached states, refilled after bank selection
 
 async function jget(url) {
   const res = await fetch(url);
@@ -432,7 +433,7 @@ async function formatResult(data) {
 bankSelect.addEventListener('change', () => {
   resetDownstream(stateSelect);
   if (!bankSelect.value) return;
-  stateSelect.disabled = false;
+  fillSelect(stateSelect, statesList.map(s => ({ value: s, label: s })), "Select State");
 });
 
 stateSelect.addEventListener('change', async () => {
@@ -529,10 +530,13 @@ shareBtn.addEventListener("click", () => {
       jget("https://cdn.jsdelivr.net/npm/ifsc@2.0.50/src/banknames.json"),
       jget(API + "/API/V1/STATE/")
     ]);
+    const isCoop = /co[\s.\-]*op|sahakari|sahakara/i;
     const banks = Object.entries(bankNames)
+      .filter(([, name]) => !isCoop.test(name))
       .map(([code, name]) => ({ value: code, label: name }))
       .sort((a, b) => a.label.localeCompare(b.label));
     fillSelect(bankSelect, banks, "Select Bank");
+    statesList = states;
     fillSelect(stateSelect, states.map(s => ({ value: s, label: s })), "Select State");
     stateSelect.disabled = true; // enabled once a bank is chosen
   } catch {
