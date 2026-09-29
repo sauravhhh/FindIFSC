@@ -5,197 +5,45 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Find IFSC</title>
   <style>
-    :root {
-      --bg: #fafafa;
-      --surface: #ffffff;
-      --text: #111111;
-      --muted: #6b7280;
-      --border: #e8e8e8;
-      --border-strong: #d1d5db;
-      --hover: #f5f5f5;
-      --radius: 16px;
-    }
-    * { box-sizing: border-box; }
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      margin: 0;
-      padding: 48px 20px 0;
-      background: var(--bg);
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      -webkit-font-smoothing: antialiased;
-    }
-    .wrap { width: 100%; max-width: 440px; }
-    h1 {
-      margin: 0 0 6px;
-      font-size: 24px;
-      font-weight: 650;
-      letter-spacing: -0.02em;
-      text-align: center;
-    }
-    .sub {
-      margin: 0 0 24px;
-      text-align: center;
-      color: var(--muted);
-      font-size: 13.5px;
-    }
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 22px;
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
-    }
-    #ifscInput {
-      width: 100%;
-      padding: 14px 16px;
-      font-size: 15px;
-      font-family: inherit;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      letter-spacing: 2px;
-      outline: none;
-      background: var(--bg);
-      color: var(--text);
-      margin-bottom: 12px;
-      text-transform: uppercase;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-    }
-    #ifscInput:focus {
-      border-color: #111111;
-      background: #ffffff;
-      box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06);
-    }
-    .buttons-row { display: flex; gap: 10px; }
-    button { font-family: inherit; cursor: pointer; }
-    #searchBtn {
-      flex: 2;
-      padding: 13px 0;
-      font-size: 15px;
-      font-weight: 600;
-      color: #ffffff;
-      background: #111111;
-      border: none;
-      border-radius: 14px;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
-    }
-    #searchBtn:hover { background: #2b2b2b; transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16); }
-    #searchBtn:active { transform: translateY(0); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10); }
-    #clearBtn {
-      flex: 1;
-      padding: 13px 0;
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease;
-    }
-    #clearBtn:hover { background: var(--hover); border-color: var(--border-strong); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.09); }
-    #clearBtn:active { transform: translateY(0); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05); }
-    .result-box {
-      margin-top: 16px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 20px 20px 12px;
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
-      animation: fadeIn 0.36s;
-    }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    .result-header { margin-bottom: 10px; }
-    .result-header code {
-      font-family: inherit;
-      color: var(--text);
-      font-weight: 650;
-      letter-spacing: 2px;
-      font-size: 19px;
-    }
-    .bank-blue { color: var(--text); font-weight: 650; }
-    .result-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
-    .result-table th, .result-table td {
-      font-size: 14.5px;
-      padding: 10px 4px;
-      text-align: left;
-      vertical-align: top;
-      border-bottom: 1px solid var(--border);
-    }
-    .result-table th { color: var(--muted); font-weight: 500; width: 38%; }
-    .result-table td { color: var(--text); font-weight: 550; }
-    .result-table tr:last-child th, .result-table tr:last-child td { border-bottom: none; }
-    #shareBtn {
-      margin: 12px auto 0;
-      display: block;
-      width: 100%;
-      padding: 13px 0;
-      background: #111111;
-      color: #ffffff;
-      font-size: 15px;
-      font-weight: 600;
-      border: none;
-      border-radius: 14px;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
-    }
-    #shareBtn:hover { background: #2b2b2b; transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16); }
-    #shareBtn:active { transform: translateY(0); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10); }
-    #sharedMsg {
-      display: block;
-      color: var(--muted);
-      font-size: 13.5px;
-      margin: 10px auto 0;
-      text-align: center;
-      font-weight: 500;
-      opacity: 0;
-      transition: opacity 0.18s;
-    }
+    body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Open Sans","Helvetica Neue",sans-serif; margin: 0; padding: 2rem; background: #fff; color: #222; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+    h1 { margin-bottom: 1rem; font-size: 1.7rem; font-weight: 600; }
+    #ifscInput { width: 100%; max-width: 400px; padding: 0.48rem 1rem; font-size: 0.92rem; border: 1px solid #bbb; border-radius: 6px; letter-spacing: 1.7px; box-sizing: border-box; outline: none; background: #fafbfc; margin-bottom: 1rem; text-transform: capitalize; }
+    #ifscInput:focus { border-color: #007aff; background: #f4f8ff; }
+    .buttons-row { display: flex; justify-content: space-between; max-width: 400px; width: 100%; gap: 1rem; margin-bottom: 1.1rem; }
+    button { flex: 1; padding: 0.62rem 0; font-size: 1.05rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; color: white; }
+    #clearBtn { background: #e0e1e6; color: #222; }
+    #clearBtn:active { background: #ccc; }
+    #searchBtn { background: #007aff; }
+    #searchBtn:active { background: #005bbb; }
+    .result-box { max-width: 400px; background: #fff; border-radius: 7px; border: 1px solid #e2e3e7; padding: 1.1rem 1rem 0.8rem 1rem; text-align: left; margin: 0 auto 1.2rem auto; font-size: 1.02em; font-family: inherit; animation: fadeIn 0.36s; }
+    @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
+    .result-header { font-size: 1.06rem; margin-bottom: 0.41rem; font-weight: 600; color: #222; letter-spacing: 1px; }
+    .result-header code { font-family: inherit; color: #007aff; background: transparent; font-weight: 600; letter-spacing: 1px; font-size: 1.05em; }
+    .bank-blue { color: #007aff; font-weight: 600; }
+    .result-table { width: 100%; border-collapse: collapse; margin-top: 0.3rem; }
+    .result-table th, .result-table td { font-size: 1rem; padding: 0.41em 0.28em; text-align: left; vertical-align: top; border-bottom: 1px solid #f2f2f2; }
+    .result-table th { color: #666; font-weight: 400; width: 38%; }
+    .result-table td { color: #232323; font-weight: 500; }
+    .result-table tr:last-child { border-bottom: none; }
+    #shareBtn { margin: 0.8em auto 0.2em auto; display: block; max-width: 400px; width: 100%; padding: 0.7em 0; background: #007aff; color: #fff; font-size: 1.05rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: background 0.2s; }
+    #shareBtn:active { background: #005bbb; }
+    #sharedMsg { display: block; color: #007aff; font-size: 0.98rem; margin: 0.45em auto 0; text-align: center; font-weight:500; opacity: 0; transition: opacity 0.18s; }
     #sharedMsg.show { opacity: 1; }
-    #error {
-      color: #b91c1c;
-      background: #fef2f2;
-      border: 1px solid #fecaca;
-      border-radius: 12px;
-      font-weight: 500;
-      font-size: 14px;
-      max-width: 440px;
-      margin: 16px auto 0;
-      padding: 12px 16px;
-      text-align: center;
-    }
-    #error:empty { display: none; }
-    footer {
-      margin-top: auto;
-      padding: 28px 16px;
-      font-size: 12.5px;
-      color: var(--muted);
-      user-select: none;
-      text-align: center;
-      width: 100%;
-    }
+    #error { color: #d33; font-weight: 500; max-width: 400px; margin: 1.3rem auto 0 auto; padding: 0; text-align: center; }
+    footer { margin-top: auto; padding: 1rem; font-size: 0.93rem; color: #666; user-select: none; text-align: center; width: 100%; }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>Find IFSC</h1>
-    <p class="sub">Look up bank branch details by IFSC code</p>
-    <div class="card">
-      <input type="text" id="ifscInput" maxlength="11" placeholder="Enter 11 digit IFSC" />
-      <div class="buttons-row">
-        <button id="clearBtn" type="button">Clear</button>
-        <button id="searchBtn" type="button">Search</button>
-      </div>
-    </div>
-    <div id="result"></div>
-    <button id="shareBtn" style="display:none;">Share</button>
-    <span id="sharedMsg">Shared!</span>
-    <div id="error"></div>
+  <h1>Find IFSC</h1>
+  <input type="text" id="ifscInput" maxlength="11" placeholder="Enter 11 digit IFSC" />
+  <div class="buttons-row">
+    <button id="clearBtn" type="button">Clear</button>
+    <button id="searchBtn" type="button">Search</button>
   </div>
+  <div id="result"></div>
+  <button id="shareBtn" style="display:none;">Share</button>
+  <span id="sharedMsg">Shared!</span>
+  <div id="error"></div>
   <footer>Made with ❤️ by Sauravhhh</footer>
 <script>
 const ifscInput = document.getElementById('ifscInput');
@@ -249,35 +97,35 @@ function formatResult(data, pinCode) {
       </div>
       <table class="result-table">
         <tr>
-          <th>Bank</th>
+          <th>Bank:</th>
           <td><span class="bank-blue">${data.BANK || ""}</span></td>
         </tr>
         <tr>
-          <th>IFSC</th>
+          <th>IFSC:</th>
           <td>${data.IFSC}</td>
         </tr>
         <tr>
-          <th>MICR Code</th>
+          <th>MICR Code:</th>
           <td>${micrCode}</td>
         </tr>
         <tr>
-          <th>Branch Code</th>
+          <th>Branch Code:</th>
           <td>${data.IFSC ? data.IFSC.substring(5) + " (Last Six Characters of IFSC Code)" : "N/A"}</td>
         </tr>
         <tr>
-          <th>Branch</th>
+          <th>Branch:</th>
           <td>${data.BRANCH || "N/A"}</td>
         </tr>
         <tr>
-          <th>City</th>
+          <th>City:</th>
           <td>${data.CITY || "N/A"}</td>
         </tr>
         <tr>
-          <th>State</th>
+          <th>State:</th>
           <td>${data.STATE || "N/A"}</td>
         </tr>
         <tr>
-          <th>Pin Code</th>
+          <th>Pin Code:</th>
           <td>${pinCode}</td>
         </tr>
       </table>
@@ -374,4 +222,5 @@ shareBtn.addEventListener("click", () => {
 });
 </script>
 </body>
-</html>
+  </html>
+  
