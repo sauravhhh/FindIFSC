@@ -313,11 +313,27 @@ const loadingDiv = document.getElementById('loading');
 let latestTextToShare = "";
 let branchData = []; // filtered branch objects for current center+bank
 let statesList = []; // cached states, refilled after bank selection
+let loadToken = null; // guards against stale branch loads
+const branchCache = new Map(); // "STATE|DISTRICT|CENTER|BANKCODE" -> branch array
 
 async function jget(url) {
   const res = await fetch(url);
   if (!res.ok) throw new Error("HTTP " + res.status);
   return res.json();
+}
+
+// Fetch with retries so a flaky file doesn't silently drop a branch
+async function fetchWithRetry(url, tries) {
+  tries = tries || 3;
+  let lastErr = null;
+  for (let i = 0; i < tries; i++) {
+    try { return await jget(url); }
+    catch (e) {
+      lastErr = e;
+      await new Promise(r => setTimeout(r, 400 * (i + 1)));
+    }
+  }
+  throw lastErr;
 }
 
 function fillSelect(sel, items, placeholder) {
@@ -469,21 +485,40 @@ centerSelect.addEventListener('change', async () => {
   const bankCode = bankSelect.value;
   if (!center) return;
   const bankName = bankSelect.options[bankSelect.selectedIndex].text;
+  const cacheKey = [state, district, center, bankCode].join("|");
+  if (branchCache.has(cacheKey)) {
+    branchData = branchCache.get(cacheKey);
+    if (!branchData.length) { showError("No " + bankName + " branches found in " + center + "."); return; }
+    fillSelect(branchSelect, branchData.map((d, i) => ({ value: String(i), label: d.BRANCH })), "Select Branch (" + branchData.length + ")");
+    return;
+  }
+  const token = Symbol("load");
+  loadToken = token;
   loadingDiv.textContent = "Loading " + bankName + " branches in " + center + "…";
   loadingDiv.classList.add("show");
   try {
     const base = API + "/API/V1/STATE/" + encodeURIComponent(state) + "/" + encodeURIComponent(district) + "/" + encodeURIComponent(center) + "/" + encodeURIComponent(center) + "/";
-    const files = await jget(base);
-    const results = await Promise.allSettled(
-      files.map(f => jget(base + encodeURIComponent(f)).catch(() => null))
-    );
-    branchData = results
-      .map(r => (r.status === "fulfilled" ? r.value : null))
-      .filter(d => d && d.BANKCODE === bankCode && d.IFSC);
-    branchData.sort((a, b) => (a.BRANCH || "").localeCompare(b.BRANCH || ""));
+    const files = await fetchWithRetry(base);
+    const BATCH = 10;
+    let done = 0, failed = 0;
+    const collected = [];
+    for (let i = 0; i < files.length; i += BATCH) {
+      if (loadToken !== token) return; // user selected something else meanwhile
+      const batch = files.slice(i, i + BATCH);
+      const results = await Promise.allSettled(batch.map(f => fetchWithRetry(base + encodeURIComponent(f))));
+      for (const r of results) {
+        if (r.status === "fulfilled" && r.value && r.value.BANKCODE === bankCode && r.value.IFSC) collected.push(r.value);
+        else if (r.status !== "fulfilled") failed++;
+      }
+      done += batch.length;
+      loadingDiv.textContent = "Loading " + bankName + " branches in " + center + "… (" + done + "/" + files.length + ")";
+    }
+    collected.sort((a, b) => (a.BRANCH || "").localeCompare(b.BRANCH || ""));
+    branchData = collected;
+    branchCache.set(cacheKey, collected);
     loadingDiv.classList.remove("show");
     if (!branchData.length) {
-      showError("No " + bankName + " branches found in " + center + ".");
+      showError(failed ? "Some branch data failed to load (" + failed + " files). Please try again." : "No " + bankName + " branches found in " + center + ".");
       return;
     }
     fillSelect(branchSelect, branchData.map((d, i) => ({ value: String(i), label: d.BRANCH })), "Select Branch (" + branchData.length + ")");
