@@ -5,17 +5,17 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Find IFSC</title>
   <style>
-    body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Open Sans","Helvetica Neue",sans-serif; margin: 0; padding: 2rem; background: #fff; color: #222; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-    h1 { margin-bottom: 1rem; font-size: 1.7rem; font-weight: 600; }
-    #ifscInput { width: 100%; max-width: 400px; padding: 0.48rem 1rem; font-size: 0.92rem; border: 1px solid #bbb; border-radius: 6px; letter-spacing: 1.7px; box-sizing: border-box; outline: none; background: #fafbfc; margin-bottom: 1rem; text-transform: capitalize; }
-    #ifscInput:focus { border-color: #007aff; background: #f4f8ff; }
-    .buttons-row { display: flex; justify-content: space-between; max-width: 400px; width: 100%; gap: 1rem; margin-bottom: 1.1rem; }
-    button { flex: 1; padding: 0.62rem 0; font-size: 1.05rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; color: white; }
-    #clearBtn { background: #e0e1e6; color: #222; }
-    #clearBtn:active { background: #ccc; }
-    #searchBtn { background: #007aff; }
-    #searchBtn:active { background: #005bbb; }
-    .result-box { max-width: 400px; background: #fff; border-radius: 7px; border: 1px solid #e2e3e7; padding: 1.1rem 1rem 0.8rem 1rem; text-align: left; margin: 0 auto 1.2rem auto; font-size: 1.02em; font-family: inherit; animation: fadeIn 0.36s; }
+    body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Open Sans","Helvetica Neue",sans-serif; margin: 0; padding: 2rem 1rem; background: #fff; color: #222; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+    h1 { margin-bottom: 0.4rem; font-size: 1.7rem; font-weight: 600; }
+    .sub { color: #666; font-size: 0.95rem; margin: 0 0 1.4rem; text-align: center; }
+    .form { width: 100%; max-width: 400px; }
+    label { display: block; font-size: 0.85rem; font-weight: 600; color: #555; margin: 0 0 0.35rem 0.1rem; }
+    select { width: 100%; padding: 0.65rem 0.9rem; font-size: 0.95rem; border: 1px solid #bbb; border-radius: 6px; background: #fafbfc; margin-bottom: 0.9rem; outline: none; color: #222; box-sizing: border-box; }
+    select:focus { border-color: #007aff; background: #f4f8ff; }
+    select:disabled { opacity: 0.45; }
+    #loading { display: none; color: #007aff; font-size: 0.95rem; margin: 0.4rem 0 0.8rem; text-align: center; font-weight: 500; }
+    #loading.show { display: block; }
+    .result-box { max-width: 400px; background: #fff; border-radius: 7px; border: 1px solid #e2e3e7; padding: 1.1rem 1rem 0.8rem 1rem; text-align: left; margin: 0.4rem auto 1.2rem auto; font-size: 1.02em; font-family: inherit; animation: fadeIn 0.36s; }
     @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
     .result-header { font-size: 1.06rem; margin-bottom: 0.41rem; font-weight: 600; color: #222; letter-spacing: 1px; }
     .result-header code { font-family: inherit; color: #007aff; background: transparent; font-weight: 600; letter-spacing: 1px; font-size: 1.05em; }
@@ -24,41 +24,96 @@
     .result-table th, .result-table td { font-size: 1rem; padding: 0.41em 0.28em; text-align: left; vertical-align: top; border-bottom: 1px solid #f2f2f2; }
     .result-table th { color: #666; font-weight: 400; width: 38%; }
     .result-table td { color: #232323; font-weight: 500; }
-    .result-table tr:last-child { border-bottom: none; }
+    .result-table tr:last-child th, .result-table tr:last-child td { border-bottom: none; }
     #shareBtn { margin: 0.8em auto 0.2em auto; display: block; max-width: 400px; width: 100%; padding: 0.7em 0; background: #007aff; color: #fff; font-size: 1.05rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: background 0.2s; }
     #shareBtn:active { background: #005bbb; }
-    #sharedMsg { display: block; color: #007aff; font-size: 0.98rem; margin: 0.45em auto 0; text-align: center; font-weight:500; opacity: 0; transition: opacity 0.18s; }
+    #sharedMsg { display: block; color: #007aff; font-size: 0.98rem; margin: 0.45em auto 0; text-align: center; font-weight: 500; opacity: 0; transition: opacity 0.18s; }
     #sharedMsg.show { opacity: 1; }
-    #error { color: #d33; font-weight: 500; max-width: 400px; margin: 1.3rem auto 0 auto; padding: 0; text-align: center; }
+    #error { color: #d33; font-weight: 500; max-width: 400px; margin: 1rem auto 0 auto; padding: 0; text-align: center; }
     footer { margin-top: auto; padding: 1rem; font-size: 0.93rem; color: #666; user-select: none; text-align: center; width: 100%; }
   </style>
 </head>
 <body>
   <h1>Find IFSC</h1>
-  <input type="text" id="ifscInput" maxlength="11" placeholder="Enter 11 digit IFSC" />
-  <div class="buttons-row">
-    <button id="clearBtn" type="button">Clear</button>
-    <button id="searchBtn" type="button">Search</button>
+  <p class="sub">Choose bank, district and branch to get the IFSC code</p>
+  <div class="form">
+    <label for="bankSelect">Bank</label>
+    <select id="bankSelect"><option value="">Loading banks…</option></select>
+    <label for="stateSelect">State</label>
+    <select id="stateSelect" disabled><option value="">Select State</option></select>
+    <label for="districtSelect">District</label>
+    <select id="districtSelect" disabled><option value="">Select District</option></select>
+    <label for="centerSelect">Center</label>
+    <select id="centerSelect" disabled><option value="">Select Center</option></select>
+    <label for="branchSelect">Branch</label>
+    <select id="branchSelect" disabled><option value="">Select Branch</option></select>
   </div>
+  <div id="loading">Loading branches…</div>
   <div id="result"></div>
   <button id="shareBtn" style="display:none;">Share</button>
   <span id="sharedMsg">Shared!</span>
   <div id="error"></div>
   <footer>Made with ❤️ by Sauravhhh</footer>
 <script>
-const ifscInput = document.getElementById('ifscInput');
-const searchBtn = document.getElementById('searchBtn');
-const clearBtn = document.getElementById('clearBtn');
+const API = "https://bank-apis.justinclicks.com";
+const bankSelect = document.getElementById('bankSelect');
+const stateSelect = document.getElementById('stateSelect');
+const districtSelect = document.getElementById('districtSelect');
+const centerSelect = document.getElementById('centerSelect');
+const branchSelect = document.getElementById('branchSelect');
 const resultDiv = document.getElementById('result');
 const errorDiv = document.getElementById('error');
 const shareBtn = document.getElementById('shareBtn');
 const sharedMsg = document.getElementById('sharedMsg');
+const loadingDiv = document.getElementById('loading');
 let latestTextToShare = "";
+let branchData = []; // filtered branch objects for current center+bank
+
+async function jget(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  return res.json();
+}
+
+function fillSelect(sel, items, placeholder) {
+  sel.innerHTML = "";
+  const ph = document.createElement('option');
+  ph.value = "";
+  ph.textContent = placeholder;
+  sel.appendChild(ph);
+  items.forEach(it => {
+    const o = document.createElement('option');
+    o.value = it.value;
+    o.textContent = it.label;
+    sel.appendChild(o);
+  });
+  sel.disabled = false;
+}
+
+function resetDownstream(from) {
+  const chain = [stateSelect, districtSelect, centerSelect, branchSelect];
+  const idx = chain.indexOf(from);
+  const labels = ["Select State", "Select District", "Select Center", "Select Branch"];
+  for (let i = idx; i < chain.length; i++) {
+    fillSelect(chain[i], [], labels[i]);
+    chain[i].disabled = true;
+  }
+  resultDiv.innerHTML = "";
+  shareBtn.style.display = "none";
+  sharedMsg.classList.remove("show");
+  errorDiv.textContent = "";
+}
+
+function showError(msg) {
+  errorDiv.textContent = msg;
+  resultDiv.innerHTML = "";
+  shareBtn.style.display = "none";
+  sharedMsg.classList.remove("show");
+}
 
 function setPinCodeFallback(city, state) {
-  // Generic fallback for major cities
   const cityPins = {
-    "Guwahati": "781001", // popular pin for Guwahati center
+    "Guwahati": "781001",
     "Mumbai": "400001",
     "Delhi": "110001",
     "Kolkata": "700001",
@@ -71,77 +126,7 @@ function setPinCodeFallback(city, state) {
   if (state === "West Bengal") return "700001";
   if (state === "Maharashtra") return "400001";
   if (state === "Delhi") return "110001";
-  return "000000"; // generic placeholder (never 'N/A')
-}
-
-function formatResult(data, pinCode) {
-  let micrCode = data.MICR ? data.MICR : "N/A";
-  latestTextToShare =
-    `IFSC Code Details\n` +
-    `-----------------------------\n` +
-    `Bank: ${data.BANK || ""}\n` +
-    `IFSC: ${data.IFSC}\n` +
-    `MICR Code: ${micrCode}\n` +
-    `Branch Code: ${data.IFSC ? data.IFSC.substring(5) + " (Last Six Characters of IFSC Code)" : "N/A"}\n` +
-    `Branch: ${data.BRANCH || "N/A"}\n` +
-    `City: ${data.CITY || "N/A"}\n` +
-    `State: ${data.STATE || "N/A"}\n` +
-    `Pin Code: ${pinCode}\n` +
-    `-----------------------------\n` +
-    `To check IFSC details visit https://sauravhhh.github.io/FindIFSC`;
-
-  return `
-    <div class="result-box">
-      <div class="result-header">
-        <code>${data.IFSC}</code>
-      </div>
-      <table class="result-table">
-        <tr>
-          <th>Bank:</th>
-          <td><span class="bank-blue">${data.BANK || ""}</span></td>
-        </tr>
-        <tr>
-          <th>IFSC:</th>
-          <td>${data.IFSC}</td>
-        </tr>
-        <tr>
-          <th>MICR Code:</th>
-          <td>${micrCode}</td>
-        </tr>
-        <tr>
-          <th>Branch Code:</th>
-          <td>${data.IFSC ? data.IFSC.substring(5) + " (Last Six Characters of IFSC Code)" : "N/A"}</td>
-        </tr>
-        <tr>
-          <th>Branch:</th>
-          <td>${data.BRANCH || "N/A"}</td>
-        </tr>
-        <tr>
-          <th>City:</th>
-          <td>${data.CITY || "N/A"}</td>
-        </tr>
-        <tr>
-          <th>State:</th>
-          <td>${data.STATE || "N/A"}</td>
-        </tr>
-        <tr>
-          <th>Pin Code:</th>
-          <td>${pinCode}</td>
-        </tr>
-      </table>
-    </div>
-  `;
-}
-
-function showError(msg) {
-  errorDiv.textContent = msg;
-  resultDiv.innerHTML = "";
-  shareBtn.style.display = "none";
-  sharedMsg.classList.remove("show");
-}
-
-function clearError() {
-  errorDiv.textContent = "";
+  return "000000";
 }
 
 async function getPostalPinCode(query) {
@@ -157,50 +142,122 @@ async function getPostalPinCode(query) {
   }
 }
 
-async function searchIFSC() {
-  clearError();
-  const ifsc = ifscInput.value.trim().toUpperCase();
-  if (ifsc.length !== 11) {
-    showError("Please enter a valid 11 digit IFSC code.");
-    return;
-  }
-  resultDiv.innerHTML = '';
-  shareBtn.style.display = "none";
-  sharedMsg.classList.remove("show");
+async function formatResult(data) {
+  let pinCode = "";
+  if (data.BRANCH) pinCode = await getPostalPinCode(data.BRANCH);
+  if (!pinCode && data.CITY) pinCode = await getPostalPinCode(data.CITY);
+  if (!pinCode && data.ADDRESS) pinCode = await getPostalPinCode(data.ADDRESS);
+  if (!pinCode && (data.CITY || data.STATE)) pinCode = setPinCodeFallback(data.CITY, data.STATE);
 
-  fetch("https://ifsc.razorpay.com/" + encodeURIComponent(ifsc))
-    .then(res => {
-      if (!res.ok) throw new Error();
-      return res.json();
-    })
-    .then(async data => {
-      // 1. Try Razorpay's PINCODE
-      let pinCode = data.PINCODE || data.POSTALCODE || "";
-      // 2. Try branch name via postal API
-      if (!pinCode && data.BRANCH) pinCode = await getPostalPinCode(data.BRANCH);
-      // 3. Try city via postal API
-      if (!pinCode && data.CITY) pinCode = await getPostalPinCode(data.CITY);
-      // 4. Try address via postal API
-      if (!pinCode && data.ADDRESS) pinCode = await getPostalPinCode(data.ADDRESS);
-      // 5. Use fallback by city/state
-      if (!pinCode && (data.CITY || data.STATE)) pinCode = setPinCodeFallback(data.CITY, data.STATE);
-      resultDiv.innerHTML = formatResult(data, pinCode);
-      shareBtn.style.display = "block";
-    })
-    .catch(() => showError("Could not find details for the entered IFSC code."));
+  let micrCode = data.MICR ? data.MICR : "N/A";
+  latestTextToShare =
+    `IFSC Code Details\n` +
+    `-----------------------------\n` +
+    `Bank: ${data.BANK || ""}\n` +
+    `IFSC: ${data.IFSC}\n` +
+    `MICR Code: ${micrCode}\n` +
+    `Branch: ${data.BRANCH || "N/A"}\n` +
+    `Address: ${data.ADDRESS || "N/A"}\n` +
+    `City: ${data.CITY || "N/A"}\n` +
+    `District: ${data.DISTRICT || "N/A"}\n` +
+    `State: ${data.STATE || "N/A"}\n` +
+    `Pin Code: ${pinCode}\n` +
+    `-----------------------------\n` +
+    `To check IFSC details visit https://sauravhhh.github.io/FindIFSC`;
+
+  return `
+    <div class="result-box">
+      <div class="result-header">
+        <code>${data.IFSC}</code>
+      </div>
+      <table class="result-table">
+        <tr><th>Bank:</th><td><span class="bank-blue">${data.BANK || ""}</span></td></tr>
+        <tr><th>IFSC:</th><td>${data.IFSC}</td></tr>
+        <tr><th>MICR Code:</th><td>${micrCode}</td></tr>
+        <tr><th>Branch:</th><td>${data.BRANCH || "N/A"}</td></tr>
+        <tr><th>Address:</th><td>${data.ADDRESS || "N/A"}</td></tr>
+        <tr><th>City:</th><td>${data.CITY || "N/A"}</td></tr>
+        <tr><th>District:</th><td>${data.DISTRICT || "N/A"}</td></tr>
+        <tr><th>State:</th><td>${data.STATE || "N/A"}</td></tr>
+        <tr><th>Pin Code:</th><td>${pinCode}</td></tr>
+      </table>
+    </div>
+  `;
 }
 
-searchBtn.addEventListener("click", searchIFSC);
-clearBtn.addEventListener("click", () => {
-  ifscInput.value = "";
+bankSelect.addEventListener('change', () => {
+  resetDownstream(stateSelect);
+  if (!bankSelect.value) return;
+  stateSelect.disabled = false;
+});
+
+stateSelect.addEventListener('change', async () => {
+  resetDownstream(districtSelect);
+  const state = stateSelect.value;
+  if (!state) return;
+  try {
+    const districts = await jget(API + "/API/V1/STATE/" + encodeURIComponent(state) + "/");
+    fillSelect(districtSelect, districts.map(d => ({ value: d, label: d })), "Select District");
+  } catch {
+    showError("Could not load districts. Please try again.");
+  }
+});
+
+districtSelect.addEventListener('change', async () => {
+  resetDownstream(centerSelect);
+  const state = stateSelect.value;
+  const district = districtSelect.value;
+  if (!district) return;
+  try {
+    const centers = await jget(API + "/API/V1/STATE/" + encodeURIComponent(state) + "/" + encodeURIComponent(district) + "/");
+    fillSelect(centerSelect, centers.map(c => ({ value: c, label: c })), "Select Center");
+  } catch {
+    showError("Could not load centers. Please try again.");
+  }
+});
+
+centerSelect.addEventListener('change', async () => {
+  resetDownstream(branchSelect);
+  const state = stateSelect.value;
+  const district = districtSelect.value;
+  const center = centerSelect.value;
+  const bankCode = bankSelect.value;
+  if (!center) return;
+  const bankName = bankSelect.options[bankSelect.selectedIndex].text;
+  loadingDiv.textContent = "Loading " + bankName + " branches in " + center + "…";
+  loadingDiv.classList.add("show");
+  try {
+    const base = API + "/API/V1/STATE/" + encodeURIComponent(state) + "/" + encodeURIComponent(district) + "/" + encodeURIComponent(center) + "/" + encodeURIComponent(center) + "/";
+    const files = await jget(base);
+    const results = await Promise.allSettled(
+      files.map(f => jget(base + encodeURIComponent(f)).catch(() => null))
+    );
+    branchData = results
+      .map(r => (r.status === "fulfilled" ? r.value : null))
+      .filter(d => d && d.BANKCODE === bankCode && d.IFSC);
+    branchData.sort((a, b) => (a.BRANCH || "").localeCompare(b.BRANCH || ""));
+    loadingDiv.classList.remove("show");
+    if (!branchData.length) {
+      showError("No " + bankName + " branches found in " + center + ".");
+      return;
+    }
+    fillSelect(branchSelect, branchData.map((d, i) => ({ value: String(i), label: d.BRANCH })), "Select Branch (" + branchData.length + ")");
+  } catch {
+    loadingDiv.classList.remove("show");
+    showError("Could not load branches. Please try again.");
+  }
+});
+
+branchSelect.addEventListener('change', async () => {
+  errorDiv.textContent = "";
   resultDiv.innerHTML = "";
   shareBtn.style.display = "none";
   sharedMsg.classList.remove("show");
-  clearError();
-  ifscInput.focus();
-});
-ifscInput.addEventListener("keyup", (e) => {
-  if (e.key === "Enter") searchIFSC();
+  if (branchSelect.value === "") return;
+  const data = branchData[parseInt(branchSelect.value, 10)];
+  if (!data) return;
+  resultDiv.innerHTML = await formatResult(data);
+  shareBtn.style.display = "block";
 });
 
 shareBtn.addEventListener("click", () => {
@@ -220,7 +277,25 @@ shareBtn.addEventListener("click", () => {
     });
   }
 });
+
+// Init: load banks + states
+(async function init() {
+  try {
+    const [bankNames, states] = await Promise.all([
+      jget("https://cdn.jsdelivr.net/npm/ifsc@2.0.50/src/banknames.json"),
+      jget(API + "/API/V1/STATE/")
+    ]);
+    const banks = Object.entries(bankNames)
+      .map(([code, name]) => ({ value: code, label: name }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+    fillSelect(bankSelect, banks, "Select Bank");
+    fillSelect(stateSelect, states.map(s => ({ value: s, label: s })), "Select State");
+    stateSelect.disabled = true; // enabled once a bank is chosen
+  } catch {
+    bankSelect.innerHTML = '<option value="">Failed to load. Reload page.</option>';
+    showError("Could not load data. Check your connection and reload.");
+  }
+})();
 </script>
 </body>
-  </html>
-  
+</html>
