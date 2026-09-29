@@ -259,7 +259,7 @@
 </head>
 <body>
   <h1>Find IFSC</h1>
-  <p class="sub">Find any branch IFSC code, either way</p>
+  <p class="sub">IFSC codes for North East India, either way</p>
   <div class="tabs">
     <button class="tab active" data-mode="bank" onclick="switchTab('bank')">By Bank</button>
     <button class="tab" data-mode="ifsc" onclick="switchTab('ifsc')">By IFSC</button>
@@ -300,6 +300,26 @@
   <footer>Made with ❤️ by Sauravhhh</footer>
 <script>
 const API = "https://bank-apis.justinclicks.com";
+
+// North East states only
+const NE_STATES = ["ARUNACHAL PRADESH","ASSAM","MANIPUR","MEGHALAYA","MIZORAM","NAGALAND","SIKKIM","TRIPURA"];
+
+// Official districts per NE state (used to filter out villages/towns from the API's district list)
+const NE_DISTRICTS = {
+"ASSAM": ["BAJALI","BAKSA","BARPETA","BISWANATH","BONGAIGAON","CACHAR","CHARAIDEO","CHIRANG","DARRANG","DHEMAJI","DHUBRI","DIBRUGARH","DIMA HASAO","GOALPARA","GOLAGHAT","HAILAKANDI","HOJAI","JORHAT","KAMRUP","KAMRUP METROPOLITAN","KARBI ANGLONG","KARIMGANJ","KOKRAJHAR","LAKHIMPUR","MAJULI","MORIGAON","NAGAON","NALBARI","SIVASAGAR","SONITPUR","SOUTH SALMARA MANKACHAR","TAMULPUR","TINSUKIA","UDALGURI","WEST KARBI ANGLONG"],
+"ARUNACHAL PRADESH": ["ANJAW","CHANGLANG","DIBANG VALLEY","EAST KAMENG","EAST SIANG","ITANAGAR CAPITAL COMPLEX","KAMLE","KRA DAADI","KURUNG KUMEY","LOHIT","LONGDING","LOWER DIBANG VALLEY","LOWER SIANG","LOWER SUBANSIRI","NAMSAI","PAKKE KESSANG","PAPUM PARE","SHI YOMI","SIANG","TAWANG","TIRAP","UPPER SIANG","UPPER SUBANSIRI","WEST KAMENG","WEST SIANG","LEPA RADA","KEYI PANYOR","BICHOM"],
+"MANIPUR": ["BISHNUPUR","CHANDEL","CHURACHANDPUR","IMPHAL EAST","IMPHAL WEST","JIRIBAM","KAKCHING","KAMJONG","KANGPOKPI","NONEY","PHERZAWL","SENAPATI","TAMENGLONG","TENGNOUPAL","THOUBAL","UKHRUL"],
+"MEGHALAYA": ["EAST GARO HILLS","EAST JAINTIA HILLS","EAST KHASI HILLS","EASTERN WEST KHASI HILLS","NORTH GARO HILLS","RI BHOI","SOUTH GARO HILLS","SOUTH WEST GARO HILLS","SOUTH WEST KHASI HILLS","WEST GARO HILLS","WEST JAINTIA HILLS","WEST KHASI HILLS"],
+"MIZORAM": ["AIZAWL","CHAMPHAI","HNAHTHIAL","KHAWZAWL","KOLASIB","LAWNGTLAI","LUNGLEI","MAMIT","SAIHA","SAITUAL","SERCHHIP"],
+"NAGALAND": ["CHUMUKEDIMA","DIMAPUR","KIPHIRE","KOHIMA","LONGLENG","MOKOKCHUNG","MON","NIULAND","NOKLAK","PEREN","PHEK","SHAMATOR","TSEMINYU","TUENSANG","WOKHA","ZUNHEBOTO"],
+"SIKKIM": ["GANGTOK","GYALSHING","MANGAN","NAMCHI","PAKYONG","SORENG"],
+"TRIPURA": ["DHALAI","GOMATI","KHOWAI","NORTH TRIPURA","SEPAHIJALA","SOUTH TRIPURA","UNAKOTI","WEST TRIPURA"]
+};
+
+// Normalize names for comparison: uppercase, strip diacritics, collapse separators
+function normName(s) {
+  return (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/[^A-Z0-9]+/g, " ").trim();
+}
 const bankSelect = document.getElementById('bankSelect');
 const stateSelect = document.getElementById('stateSelect');
 const districtSelect = document.getElementById('districtSelect');
@@ -458,7 +478,12 @@ stateSelect.addEventListener('change', async () => {
   if (!state) return;
   try {
     const districts = await jget(API + "/API/V1/STATE/" + encodeURIComponent(state) + "/");
-    fillSelect(districtSelect, districts.map(d => ({ value: d, label: d })), "Select District");
+    // The API mixes villages/towns into the district list; keep only official districts
+    const official = NE_DISTRICTS[state] || NE_DISTRICTS[normName(state)] || [];
+    const wanted = new Set(official.map(normName));
+    const realDistricts = districts.filter(d => wanted.has(normName(d)));
+    if (!realDistricts.length) { showError("No districts found for " + state + "."); return; }
+    fillSelect(districtSelect, realDistricts.map(d => ({ value: d, label: d })), "Select District");
   } catch {
     showError("Could not load districts. Please try again.");
   }
@@ -571,8 +596,9 @@ shareBtn.addEventListener("click", () => {
       .map(([code, name]) => ({ value: code, label: name }))
       .sort((a, b) => a.label.localeCompare(b.label));
     fillSelect(bankSelect, banks, "Select Bank");
-    statesList = states;
-    fillSelect(stateSelect, states.map(s => ({ value: s, label: s })), "Select State");
+    // North East states only
+    statesList = states.filter(s => NE_STATES.includes(normName(s)));
+    fillSelect(stateSelect, statesList.map(s => ({ value: s, label: s })), "Select State");
     stateSelect.disabled = true; // enabled once a bank is chosen
   } catch {
     bankSelect.innerHTML = '<option value="">Failed to load. Reload page.</option>';
